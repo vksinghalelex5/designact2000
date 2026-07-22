@@ -2,591 +2,671 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Voice Biometric Login</title>
+<title>Designs Act, 2000 — Secure Statutory Search</title>
 <style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #1e1b4b, #0f172a);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    color: #e2e8f0;
-  }
-  .card {
-    width: 380px;
-    background: #111827;
-    border: 1px solid #2d3748;
-    border-radius: 16px;
-    padding: 32px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  }
-  h1 {
-    font-size: 20px;
-    margin: 0 0 4px;
-    text-align: center;
-  }
-  .sub {
-    text-align: center;
-    color: #94a3b8;
-    font-size: 13px;
-    margin-bottom: 24px;
-  }
-  label {
-    font-size: 12px;
-    color: #94a3b8;
-    display: block;
-    margin-bottom: 6px;
-  }
-  input {
-    width: 100%;
-    padding: 10px 12px;
-    background: #1f2937;
-    border: 1px solid #374151;
-    border-radius: 8px;
-    color: #e2e8f0;
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
-  input:disabled { opacity: 0.6; }
-  .mic-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  button {
-    cursor: pointer;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 12px;
-    transition: transform 0.1s, opacity 0.2s;
-  }
-  button:active { transform: scale(0.97); }
-  button:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-record {
-    flex: 1;
-    background: #312e81;
-    color: #e0e7ff;
-  }
-  .btn-record.recording {
-    background: #7f1d1d;
-    color: #fecaca;
-    animation: pulse 1s infinite;
-  }
-  .btn-primary {
-    width: 100%;
-    background: #4f46e5;
-    color: white;
-  }
-  .btn-primary:hover:not(:disabled) { background: #4338ca; }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-  .status {
-    margin-top: 16px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    text-align: center;
-    min-height: 18px;
-  }
-  .status.ok { background: rgba(34,197,94,0.15); color: #4ade80; }
-  .status.err { background: rgba(239,68,68,0.15); color: #f87171; }
-  .status.info { background: rgba(99,102,241,0.15); color: #a5b4fc; }
-  .waveform {
-    height: 40px;
-    background: #1f2937;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    padding: 0 8px;
-    overflow: hidden;
-  }
-  .waveform div {
-    width: 3px;
-    background: #6366f1;
-    border-radius: 2px;
-    min-height: 2px;
-  }
-  .tag {
-    display: inline-block;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: #1f2937;
-    color: #94a3b8;
-    margin-left: 6px;
-  }
-  .locked-badge {
-    text-align: center;
-    font-size: 32px;
-    margin-bottom: 8px;
-  }
-  .hub {
-    display: none;
-    width: 420px;
-    background: #ffffff;
-    color: #1e293b;
-    border-radius: 16px;
-    padding: 32px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  }
-  .hub h1 {
-    text-align: center;
-    font-size: 30px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    margin: 0 0 4px;
-    color: #0f172a;
-  }
-  .hub .hub-sub {
-    text-align: center;
-    color: #64748b;
-    font-size: 14px;
-    margin-bottom: 24px;
-  }
-  .hub label {
-    color: #0f172a;
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 8px;
-  }
-  .hub input {
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    color: #0f172a;
-    padding: 14px;
-    font-size: 15px;
-  }
-  .hub-or {
-    text-align: center;
-    color: #94a3b8;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 8px 0 20px;
-  }
-  .hub-or::before, .hub-or::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #cbd5e1;
-  }
-  .hub-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 8px;
-  }
-  .hub-buttons button {
-    padding: 14px;
-    font-size: 15px;
-  }
-  .btn-lock { background: #64748b; color: white; }
-  .btn-execute { background: #2563eb; color: white; }
-  .btn-clear { background: #94a3b8; color: white; }
-  .hub-result {
-    margin-top: 20px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 16px;
-    color: #475569;
-    font-size: 14px;
-    line-height: 1.5;
-    max-height: 320px;
-    overflow-y: auto;
-  }
-  .hub-result h3 {
-    margin: 0 0 6px;
-    color: #0f172a;
-    font-size: 15px;
-  }
-  .hub-result .ex {
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px dashed #cbd5e1;
-    font-style: italic;
-    color: #64748b;
-  }
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap');
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    background: #12181f;
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(184,140,60,0.08), transparent 40%),
+      radial-gradient(circle at 80% 100%, rgba(184,140,60,0.05), transparent 45%);
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #e7e2d6;
+    padding: 40px 20px 80px;
+  }
+
+  /* ---------- Voice login card ---------- */
+  .card {
+    width: 380px;
+    background: #1a222c;
+    border: 1px solid rgba(231,226,214,0.14);
+    border-radius: 14px;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    margin-top: 6vh;
+  }
+  .locked-badge { text-align: center; font-size: 32px; margin-bottom: 8px; }
+  .card h1 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 20px;
+    margin: 0 0 4px;
+    text-align: center;
+    color: #f5f1e6;
+  }
+  .card .sub {
+    text-align: center;
+    color: #a9a293;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .card label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #c99b4a;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .card input {
+    width: 100%;
+    padding: 10px 12px;
+    background: #12181f;
+    border: 1px solid rgba(231,226,214,0.18);
+    border-radius: 8px;
+    color: #e7e2d6;
+    font-size: 14px;
+    margin-bottom: 16px;
+    font-family: 'Inter', sans-serif;
+  }
+  .card input:disabled { opacity: 0.6; }
+  .mic-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-record { flex: 1; background: #2b2416; color: #f0dcae; border: 1px solid rgba(201,155,74,0.35); }
+  .btn-record.recording {
+    background: #7f1d1d;
+    color: #fecaca;
+    border-color: transparent;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+  .status {
+    margin-top: 16px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: center;
+    min-height: 18px;
+  }
+  .status.ok { background: rgba(74,222,128,0.12); color: #4ade80; }
+  .status.err { background: rgba(239,68,68,0.12); color: #f87171; }
+  .status.info { background: rgba(201,155,74,0.12); color: #c99b4a; }
+  .waveform {
+    height: 40px;
+    background: #12181f;
+    border: 1px solid rgba(231,226,214,0.1);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 8px;
+    overflow: hidden;
+  }
+  .waveform div { width: 3px; background: #c99b4a; border-radius: 2px; min-height: 2px; }
+  .tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #12181f;
+    border: 1px solid rgba(231,226,214,0.15);
+    color: #a9a293;
+    margin-left: 6px;
+    text-transform: none;
+  }
+
+  /* ---------- Hub (Designs Act search) ---------- */
+  .page { display: none; max-width: 880px; margin: 0 auto; width: 100%; }
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid rgba(231,226,214,0.14);
+    position: relative;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #c99b4a;
+    margin-bottom: 10px;
+  }
+  header h1 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 700;
+    font-size: 38px;
+    margin: 0 0 8px;
+    color: #f5f1e6;
+    letter-spacing: 0.3px;
+  }
+  .tagline { color: #a9a293; font-size: 14.5px; max-width: 480px; margin: 0 auto; line-height: 1.5; }
+  .btn-lock {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: transparent;
+    color: #a9a293;
+    border: 1px solid rgba(231,226,214,0.2);
+    font-size: 12.5px;
+    padding: 8px 14px;
+  }
+  .btn-lock:hover { color: #f5f1e6; border-color: rgba(231,226,214,0.4); }
+
+  .search-panel {
+    background: #1a222c;
+    border: 1px solid rgba(231,226,214,0.12);
+    border-radius: 14px;
+    padding: 26px;
+    margin-bottom: 28px;
+  }
+  .search-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: end; }
+  @media (max-width: 640px) {
+    .search-row { grid-template-columns: 1fr; }
+    .divider-or { display: none; }
+  }
+  .field label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #c99b4a;
+    margin-bottom: 8px;
+  }
+  .field input {
+    width: 100%;
+    padding: 12px 14px;
+    background: #12181f;
+    border: 1px solid rgba(231,226,214,0.18);
+    border-radius: 8px;
+    color: #f5f1e6;
+    font-size: 14.5px;
+    font-family: 'Inter', sans-serif;
+  }
+  .field input:focus { outline: none; border-color: #c99b4a; }
+  .field input::placeholder { color: #6b6558; }
+  .divider-or { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6b6558; padding-bottom: 12px; text-align: center; }
+
+  .action-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .btn-search { background: #c99b4a; color: #1a1206; }
+  .btn-search:hover { opacity: 0.9; }
+  .btn-clear { background: transparent; color: #a9a293; border: 1px solid rgba(231,226,214,0.2); }
+  .btn-clear:hover { color: #f5f1e6; border-color: rgba(231,226,214,0.4); }
+  .btn-browse { background: transparent; color: #c99b4a; border: 1px solid rgba(201,155,74,0.4); margin-left: auto; }
+  .btn-browse:hover { background: rgba(201,155,74,0.1); }
+
+  #hubResult { display: flex; flex-direction: column; gap: 14px; }
+  .empty-state { text-align: center; color: #6b6558; font-size: 13.5px; padding: 30px 10px; line-height: 1.6; }
+  .result-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: #6b6558;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .section-card {
+    background: #1a222c;
+    border: 1px solid rgba(231,226,214,0.12);
+    border-left: 3px solid #c99b4a;
+    border-radius: 10px;
+    padding: 20px 22px;
+  }
+  .section-card h3 {
+    margin: 0 0 10px;
+    font-family: 'Source Serif 4', serif;
+    font-size: 18px;
+    color: #f5f1e6;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: #c99b4a;
+    background: rgba(201,155,74,0.12);
+    padding: 2px 8px;
+    border-radius: 5px;
+  }
+  .section-card .body-text { color: #cfc9ba; font-size: 14.5px; line-height: 1.65; margin-bottom: 12px; }
+  .section-card .ex { font-size: 13.5px; color: #a9a293; font-style: italic; padding-top: 12px; border-top: 1px dashed rgba(231,226,214,0.15); }
+  .section-card .ex b { font-style: normal; color: #c99b4a; font-weight: 600; }
+
+  #browseList { display: none; }
+  #browseList .section-card { border-left-color: rgba(201,155,74,0.35); }
+
+  footer { text-align: center; margin-top: 40px; font-size: 12px; color: #5a5548; }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="locked-badge" id="badge">🔒</div>
-  <h1>Secure Login</h1>
-  <div class="sub">Username is fixed. Password is your voice.</div> 
 
-  <label>Username</label>
-  <input type="text" value="admin" disabled> 
+<div class="card" id="loginCard">
+  <div class="locked-badge" id="badge">🔒</div>
+  <h1>Secure Login</h1>
+  <div class="sub">Username is fixed. Password is your voice.</div>
 
-  <label>Voice Password <span class="tag" id="enrollTag">not set</span></label>
-  <div class="waveform" id="waveform"></div> 
+  <label>Username</label>
+  <input type="text" value="admin" disabled>
 
-  <div class="mic-row">
-    <button class="btn-record" id="enrollBtn">🎙️ Set Voice Password</button>
-    <button class="btn-record" id="verifyBtn" disabled>🔓 Unlock</button>
-  </div> 
+  <label>Voice Password <span class="tag" id="enrollTag">not set</span></label>
+  <div class="waveform" id="waveform"></div>
 
-  <div class="status info" id="status">Set your voice password first.</div>
-</div> 
+  <div class="mic-row">
+    <button class="btn-record" id="enrollBtn">🎙️ Set Voice Password</button>
+    <button class="btn-record" id="verifyBtn" disabled>🔓 Unlock</button>
+  </div>
 
-<div class="hub" id="hubScreen">
-  <h1>STATUTORY<br>SEARCH HUB</h1>
-  <div class="hub-sub">Search sections of the Designs Act, 2000 with real-world examples</div> 
+  <div class="status info" id="status">Set your voice password first.</div>
+</div>
 
-  <label>Search by Section Number</label>
-  <input type="text" id="sectionInput" placeholder="Enter precise section number (e.g., 4)"> 
+<div class="page" id="hubScreen">
+  <header>
+    <button class="btn-lock" id="lockBtn">Lock system</button>
+    <div class="eyebrow">Statutory Reference · India</div>
+    <h1>The Designs Act, 2000</h1>
+    <div class="tagline">Search any section by number or by concept — each result includes a plain-language summary and a worked example.</div>
+  </header>
 
-  <div class="hub-or">OR</div> 
+  <div class="search-panel">
+    <div class="search-row">
+      <div class="field">
+        <label for="sectionInput">Search by section number</label>
+        <input type="text" id="sectionInput" placeholder="e.g. 4, 22, 2(a)">
+      </div>
+      <div class="divider-or">OR</div>
+      <div class="field">
+        <label for="keywordInput">Search by keyword</label>
+        <input type="text" id="keywordInput" placeholder="e.g. piracy, cancellation">
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="btn-search" id="executeBtn">Search</button>
+      <button class="btn-clear" id="clearBtn">Clear</button>
+      <button class="btn-browse" id="browseBtn">Browse all 57 sections</button>
+    </div>
+  </div>
 
-  <label>Search by Key Concept / Word</label>
-  <input type="text" id="keywordInput" placeholder="Enter keyword (e.g., piracy, cancellation)"> 
+  <div id="hubResult">
+    <div class="empty-state">Enter a section number or a keyword above, then hit Search.</div>
+  </div>
 
-  <div class="hub-buttons">
-    <button class="btn-lock" id="lockBtn">Lock System</button>
-    <button class="btn-execute" id="executeBtn">Execute Search</button>
-    <button class="btn-clear" id="clearBtn">Clear Form</button>
-  </div> 
+  <div id="browseList"></div>
 
-  <div class="hub-result" id="hubResult">Awaiting query execution. Enter a targeted section or key phrase above to generate clean, structured results.</div>
-</div> 
+  <footer>Designs Act, 2000 (India) — reference summaries, not a substitute for the statutory text.</footer>
+</div>
 
 <script>
+/* =====================================================================
+   Voice biometric login
+   ===================================================================== */
 const enrollBtn = document.getElementById('enrollBtn');
 const verifyBtn = document.getElementById('verifyBtn');
-const loginBtn = document.getElementById('loginBtn');
 const statusEl = document.getElementById('status');
 const waveformEl = document.getElementById('waveform');
 const enrollTag = document.getElementById('enrollTag');
-const badge = document.getElementById('badge'); 
+const badge = document.getElementById('badge');
+const loginCard = document.getElementById('loginCard');
+const hubScreen = document.getElementById('hubScreen');
 
 let enrolledPrint = null;
 let audioContext = null;
-let attemptCount = 0; 
+let attemptCount = 0;
 
 function setStatus(msg, type) {
-  statusEl.textContent = msg;
-  statusEl.className = 'status ' + (type || 'info');
-} 
+  statusEl.textContent = msg;
+  statusEl.className = 'status ' + (type || 'info');
+}
 
 function drawWaveform(samples) {
-  waveformEl.innerHTML = '';
-  const step = Math.max(1, Math.floor(samples.length / 60));
-  for (let i = 0; i < samples.length; i += step) {
-    const bar = document.createElement('div');
-    const h = Math.max(2, Math.abs(samples[i]) * 40);
-    bar.style.height = h + 'px';
-    waveformEl.appendChild(bar);
-  }
-} 
+  waveformEl.innerHTML = '';
+  const step = Math.max(1, Math.floor(samples.length / 60));
+  for (let i = 0; i < samples.length; i += step) {
+    const bar = document.createElement('div');
+    const h = Math.max(2, Math.abs(samples[i]) * 40);
+    bar.style.height = h + 'px';
+    waveformEl.appendChild(bar);
+  }
+}
 
-// Record 2.5s of audio and extract a simple "voiceprint":
-// an energy-envelope + zero-crossing-rate feature vector.
+// Record audio and extract a simple "voiceprint": an energy-envelope,
+// zero-crossing-rate, and pitch feature vector.
 async function recordAndExtract(durationMs = 2500) {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
-  const source = audioContext.createMediaStreamSource(stream);
-  const processor = audioContext.createScriptProcessor(2048, 1, 1); 
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+  const source = audioContext.createMediaStreamSource(stream);
+  const processor = audioContext.createScriptProcessor(2048, 1, 1);
 
-  const chunks = [];
-  source.connect(processor);
-  processor.connect(audioContext.destination); 
+  const chunks = [];
+  source.connect(processor);
+  processor.connect(audioContext.destination);
 
-  processor.onaudioprocess = (e) => {
-    const input = e.inputBuffer.getChannelData(0);
-    chunks.push(new Float32Array(input));
-  }; 
+  processor.onaudioprocess = (e) => {
+    const input = e.inputBuffer.getChannelData(0);
+    chunks.push(new Float32Array(input));
+  };
 
-  await new Promise((resolve) => setTimeout(resolve, durationMs)); 
+  await new Promise((resolve) => setTimeout(resolve, durationMs));
 
-  processor.disconnect();
-  source.disconnect();
-  stream.getTracks().forEach(t => t.stop()); 
+  processor.disconnect();
+  source.disconnect();
+  stream.getTracks().forEach(t => t.stop());
 
-  // Flatten
-  let all = new Float32Array(chunks.reduce((a, c) => a + c.length, 0));
-  let offset = 0;
-  for (const c of chunks) { all.set(c, offset); offset += c.length; } 
+  let all = new Float32Array(chunks.reduce((a, c) => a + c.length, 0));
+  let offset = 0;
+  for (const c of chunks) { all.set(c, offset); offset += c.length; }
 
-  drawWaveform(all); 
+  drawWaveform(all);
 
-  // Extract feature vector: split into N frames, compute RMS energy
-  // and zero-crossing rate per frame -> normalized fingerprint.
-  // Trim leading/trailing silence so the fingerprint focuses on
-  // actual speech, not dead air (which varies a lot between takes).
-  const SILENCE_THRESHOLD = 0.02;
-  let startIdx = 0, endIdx = all.length - 1;
-  for (let i = 0; i < all.length; i++) {
-    if (Math.abs(all[i]) > SILENCE_THRESHOLD) { startIdx = i; break; }
-  }
-  for (let i = all.length - 1; i >= 0; i--) {
-    if (Math.abs(all[i]) > SILENCE_THRESHOLD) { endIdx = i; break; }
-  }
-  if (endIdx <= startIdx) { startIdx = 0; endIdx = all.length - 1; }
-  const trimmed = all.slice(startIdx, endIdx + 1); 
+  // Trim leading/trailing silence so the fingerprint focuses on
+  // actual speech, not dead air.
+  const SILENCE_THRESHOLD = 0.02;
+  let startIdx = 0, endIdx = all.length - 1;
+  for (let i = 0; i < all.length; i++) {
+    if (Math.abs(all[i]) > SILENCE_THRESHOLD) { startIdx = i; break; }
+  }
+  for (let i = all.length - 1; i >= 0; i--) {
+    if (Math.abs(all[i]) > SILENCE_THRESHOLD) { endIdx = i; break; }
+  }
+  if (endIdx <= startIdx) { startIdx = 0; endIdx = all.length - 1; }
+  const trimmed = all.slice(startIdx, endIdx + 1);
 
-  const N_FRAMES = 24;
-  const frameSize = Math.floor(trimmed.length / N_FRAMES) || 1;
-  const energy = [];
-  const zcr = [];
-  const pitch = [];
-  const sampleRate = audioContext.sampleRate; 
+  const N_FRAMES = 24;
+  const frameSize = Math.floor(trimmed.length / N_FRAMES) || 1;
+  const energy = [];
+  const zcr = [];
+  const pitch = [];
+  const sampleRate = audioContext.sampleRate;
 
-  // Autocorrelation-based pitch detection for a single frame.
-  // Returns estimated fundamental frequency in Hz, or 0 if unvoiced.
-  function detectPitch(frame, sr) {
-    const minFreq = 75;   // lowest expected voice pitch
-    const maxFreq = 400;  // highest expected voice pitch
-    const minLag = Math.floor(sr / maxFreq);
-    const maxLag = Math.floor(sr / minFreq); 
+  // Autocorrelation-based pitch detection for a single frame.
+  function detectPitch(frame, sr) {
+    const minFreq = 75;
+    const maxFreq = 400;
+    const minLag = Math.floor(sr / maxFreq);
+    const maxLag = Math.floor(sr / minFreq);
 
-    // Skip near-silent frames
-    let rms = 0;
-    for (let i = 0; i < frame.length; i++) rms += frame[i] * frame[i];
-    rms = Math.sqrt(rms / frame.length);
-    if (rms < 0.01) return 0; 
+    let rms = 0;
+    for (let i = 0; i < frame.length; i++) rms += frame[i] * frame[i];
+    rms = Math.sqrt(rms / frame.length);
+    if (rms < 0.01) return 0;
 
-    let bestLag = -1;
-    let bestCorr = 0;
-    for (let lag = minLag; lag <= maxLag && lag < frame.length; lag++) {
-      let corr = 0;
-      for (let i = 0; i < frame.length - lag; i++) {
-        corr += frame[i] * frame[i + lag];
-      }
-      if (corr > bestCorr) {
-        bestCorr = corr;
-        bestLag = lag;
-      }
-    }
-    if (bestLag <= 0) return 0;
-    return sr / bestLag;
-  } 
+    let bestLag = -1;
+    let bestCorr = 0;
+    for (let lag = minLag; lag <= maxLag && lag < frame.length; lag++) {
+      let corr = 0;
+      for (let i = 0; i < frame.length - lag; i++) {
+        corr += frame[i] * frame[i + lag];
+      }
+      if (corr > bestCorr) {
+        bestCorr = corr;
+        bestLag = lag;
+      }
+    }
+    if (bestLag <= 0) return 0;
+    return sr / bestLag;
+  }
 
-  for (let f = 0; f < N_FRAMES; f++) {
-    const start = f * frameSize;
-    const end = Math.min(start + frameSize, trimmed.length);
-    const frame = trimmed.slice(start, end); 
+  for (let f = 0; f < N_FRAMES; f++) {
+    const start = f * frameSize;
+    const end = Math.min(start + frameSize, trimmed.length);
+    const frame = trimmed.slice(start, end);
 
-    let sumSq = 0, crossings = 0;
-    for (let i = 0; i < frame.length; i++) {
-      sumSq += frame[i] * frame[i];
-      if (i > 0 && ((frame[i - 1] < 0 && frame[i] >= 0) || (frame[i - 1] >= 0 && frame[i] < 0))) {
-        crossings++;
-      }
-    }
-    const frameLen = Math.max(1, frame.length);
-    energy.push(Math.sqrt(sumSq / frameLen));
-    zcr.push(crossings / frameLen);
-    pitch.push(detectPitch(frame, sampleRate));
-  } 
+    let sumSq = 0, crossings = 0;
+    for (let i = 0; i < frame.length; i++) {
+      sumSq += frame[i] * frame[i];
+      if (i > 0 && ((frame[i - 1] < 0 && frame[i] >= 0) || (frame[i - 1] >= 0 && frame[i] < 0))) {
+        crossings++;
+      }
+    }
+    const frameLen = Math.max(1, frame.length);
+    energy.push(Math.sqrt(sumSq / frameLen));
+    zcr.push(crossings / frameLen);
+    pitch.push(detectPitch(frame, sampleRate));
+  }
 
-  // Normalize each feature set to unit scale so loudness alone
-  // doesn't dominate the match.
-  const norm = (arr) => {
-    const max = Math.max(...arr, 1e-6);
-    return arr.map(v => v / max);
-  }; 
+  const norm = (arr) => {
+    const max = Math.max(...arr, 1e-6);
+    return arr.map(v => v / max);
+  };
 
-  // Pitch is normalized against a fixed vocal range (not per-recording
-  // max) so it reflects actual Hz differences between takes/speakers.
-  const pitchNorm = pitch.map(p => p / 400); 
+  // Pitch is normalized against a fixed vocal range (not per-recording
+  // max) so it reflects actual Hz differences between takes.
+  const pitchNorm = pitch.map(p => p / 400);
 
-  return { energy: norm(energy), zcr: norm(zcr), pitch: pitchNorm };
-} 
+  return { energy: norm(energy), zcr: norm(zcr), pitch: pitchNorm };
+}
 
-// Cosine-similarity style comparison between two fingerprints
 function compareFingerprints(a, b) {
-  const cosSim = (x, y) => {
-    let dot = 0, magX = 0, magY = 0;
-    for (let i = 0; i < x.length; i++) {
-      dot += x[i] * y[i];
-      magX += x[i] * x[i];
-      magY += y[i] * y[i];
-    }
-    return dot / (Math.sqrt(magX) * Math.sqrt(magY) + 1e-9);
-  };
-  const energyScore = cosSim(a.energy, b.energy);
-  const zcrScore = cosSim(a.zcr, b.zcr);
-  const pitchScore = cosSim(a.pitch, b.pitch);
-  return (pitchScore * 0.6 + energyScore * 0.25 + zcrScore * 0.15);
-} 
+  const cosSim = (x, y) => {
+    let dot = 0, magX = 0, magY = 0;
+    for (let i = 0; i < x.length; i++) {
+      dot += x[i] * y[i];
+      magX += x[i] * x[i];
+      magY += y[i] * y[i];
+    }
+    return dot / (Math.sqrt(magX) * Math.sqrt(magY) + 1e-9);
+  };
+  const energyScore = cosSim(a.energy, b.energy);
+  const zcrScore = cosSim(a.zcr, b.zcr);
+  const pitchScore = cosSim(a.pitch, b.pitch);
+  return (pitchScore * 0.6 + energyScore * 0.25 + zcrScore * 0.15);
+}
 
 enrollBtn.addEventListener('click', async () => {
-  try {
-    enrollBtn.classList.add('recording');
-    enrollBtn.textContent = '🔴 Listening...';
-    setStatus('Say your passphrase now (2.5s recording)...', 'info'); 
+  try {
+    enrollBtn.classList.add('recording');
+    enrollBtn.textContent = '🔴 Listening...';
+    setStatus('Say your passphrase now (2.5s recording)...', 'info');
 
-    enrolledPrint = await recordAndExtract();
-    attemptCount = 0; 
+    enrolledPrint = await recordAndExtract();
+    attemptCount = 0;
 
-    enrollBtn.classList.remove('recording');
-    enrollBtn.textContent = '🎙️ Reset Voice Password';
-    enrollTag.textContent = 'password set ✓';
-    verifyBtn.disabled = false;
-    setStatus('Voice password set. Click Unlock and say it again to log in.', 'ok');
-  } catch (err) {
-    enrollBtn.classList.remove('recording');
-    enrollBtn.textContent = '🎙️ Set Voice Password';
-    setStatus('Microphone access failed: ' + err.message, 'err');
-  }
-}); 
+    enrollBtn.classList.remove('recording');
+    enrollBtn.textContent = '🎙️ Reset Voice Password';
+    enrollTag.textContent = 'password set ✓';
+    verifyBtn.disabled = false;
+    setStatus('Voice password set. Click Unlock and say it again to log in.', 'ok');
+  } catch (err) {
+    enrollBtn.classList.remove('recording');
+    enrollBtn.textContent = '🎙️ Set Voice Password';
+    setStatus('Microphone access failed: ' + err.message, 'err');
+  }
+});
 
 verifyBtn.addEventListener('click', async () => {
-  try {
-    verifyBtn.classList.add('recording');
-    verifyBtn.textContent = '🔴 Listening...';
-    setStatus('Say your voice password to unlock...', 'info'); 
+  try {
+    verifyBtn.classList.add('recording');
+    verifyBtn.textContent = '🔴 Listening...';
+    setStatus('Say your voice password to unlock...', 'info');
 
-    const attemptPrint = await recordAndExtract();
-    const similarity = compareFingerprints(enrolledPrint, attemptPrint); 
+    const attemptPrint = await recordAndExtract();
+    const similarity = compareFingerprints(enrolledPrint, attemptPrint);
 
-    verifyBtn.classList.remove('recording');
-    verifyBtn.textContent = '🔓 Unlock'; 
+    verifyBtn.classList.remove('recording');
+    verifyBtn.textContent = '🔓 Unlock';
 
-    const THRESHOLD = 0.6; // tune based on real-world testing
-    if (similarity >= THRESHOLD) {
-      attemptCount = 0;
-      setStatus(`Welcome, admin. Login successful (score ${similarity.toFixed(2)}).`, 'ok');
-      badge.textContent = '🔓';
-      document.querySelector('.card').style.display = 'none';
-      document.getElementById('hubScreen').style.display = 'block';
-    } else {
-      attemptCount++;
-      setStatus(`Voice did not match (score ${similarity.toFixed(2)}). Click Unlock and say it again — attempt ${attemptCount}.`, 'err');
-      badge.textContent = '🔒';
-    }
-  } catch (err) {
-    verifyBtn.classList.remove('recording');
-    verifyBtn.textContent = '🔓 Unlock';
-    setStatus('Microphone access failed: ' + err.message, 'err');
-  }
+    const THRESHOLD = 0.6; // tune based on real-world testing
+    if (similarity >= THRESHOLD) {
+      attemptCount = 0;
+      setStatus(`Welcome, admin. Login successful (score ${similarity.toFixed(2)}).`, 'ok');
+      badge.textContent = '🔓';
+      loginCard.style.display = 'none';
+      hubScreen.style.display = 'block';
+    } else {
+      attemptCount++;
+      setStatus(`Voice did not match (score ${similarity.toFixed(2)}). Click Unlock and say it again — attempt ${attemptCount}.`, 'err');
+      badge.textContent = '🔒';
+    }
+  } catch (err) {
+    verifyBtn.classList.remove('recording');
+    verifyBtn.textContent = '🔓 Unlock';
+    setStatus('Microphone access failed: ' + err.message, 'err');
+  }
 });
-// ---- Statutory Search Hub logic ----
-// A representative set of sections from the Designs Act, 2000 (India),
-// each with a plain-language summary and a real-world style example.
-// Not all sections are included, but search covers the most commonly
-// referenced ones by number and by keyword.
-const patentSections = [
-{ num: "1", title: "Short title, extent and commencement", text: "This Act may be called the Designs Act, 2000, extends to the whole of India, and comes into force on such date as the Central Government may appoint.", example: "The Act applies uniformly across India following its appointed commencement date." },
-{ num: "2(a)", title: "Definition of 'Article'", text: "An article means any article of manufacture and any substance, artificial, or partly artificial and partly natural; and includes any part of an article capable of being made and sold separately.", example: "A detachable handle component manufactured and sold separately for cookware qualifies as an article." },
-{ num: "2(b)", title: "Definition of 'Controller'", text: "The Controller means the Controller-General of Patents, Designs and Trade Marks referred to in section 3.", example: "The designated Controller-General handles administrative filings and oversights for design registrations." },
-{ num: "2(c)", title: "Definition of 'Copyright'", text: "Copyright means the exclusive right to apply a design to any article in any class in which the design is registered.", example: "The registered proprietor holds the exclusive right to apply a specific pattern to textile items within the registered class." },
-{ num: "2(d)", title: "Definition of 'Design'", text: "Design means only the features of shape, configuration, pattern, ornament or composition of lines or colours applied to any article by any industrial process which appeal to and are judged solely by the eye, excluding mere mechanical devices, trademarks, property marks, or artistic works.", example: "The unique surface pattern etched onto a dinner plate appeals solely to the eye and constitutes a protectable design." },
-{ num: "2(e)", title: "Definition of 'High Court'", text: "High Court shall have the same meaning as assigned to it in clause (i) of section 2 of the Patents Act, 1970.", example: "Appeals from Controller decisions on designs are directed to the appropriate High Court." },
-{ num: "2(f)", title: "Definition of 'Legal Representative'", text: "Legal representative means a person who in law represents the estate of a deceased person.", example: "An executor manages design rights on behalf of a deceased designer's estate." },
-{ num: "2(g)", title: "Definition of 'Original'", text: "Original, in relation to a design, means originating from the author of such design and includes cases which though old in themselves yet are new in their application.", example: "Applying a traditional geometric folk motif to a completely modern electronic appliance casing creates an original design application." },
-{ num: "2(h)", title: "Definition of 'Patent Office'", text: "Patent office means the patent office referred to in section 74 of the Patents Act, 1970.", example: "Design applications are filed and processed through the designated patent office." },
-{ num: "2(i)", title: "Definition of 'Prescribed'", text: "Prescribed means prescribed by rules made under this Act.", example: "Procedural deadlines and forms are governed by what is prescribed under the rules." },
-{ num: "2(j)", title: "Definition of 'Proprietor of a new or original design'", text: "Defines who holds proprietorship based on whether the design was commissioned, acquired, or created independently by the author.", example: "A company that commissions an industrial designer to create a product shape for consideration is considered the proprietor." },
-{ num: "3", title: "Controller and Other Officers", text: "The Controller-General acts as the Controller of Designs, assisted by appointed examiners and officers functioning under superintendence and direction.", example: "Examiners review design applications and submit reports under the superintendence of the Controller." },
-{ num: "4", title: "Prohibition of Registration of Certain Designs", text: "Prohibits the registration of designs that are not new or original, have been previously disclosed, are indistinguishable from known designs, or contain scandalous or obscene matter.", example: "A shape identical to an existing common water bottle with no significant alterations cannot be registered." },
-{ num: "5", title: "Application for Registration of Designs", text: "Allows the Controller to register a new or original design upon application in the prescribed form, following examination and report.", example: "An applicant files the requisite form, fee, and representations for a novel chair design to undergo examination." },
-{ num: "6", title: "Registration to be in Respect of Particular Article", text: "A design is registered in respect of a particular article or articles within a prescribed class, with provisions for multiple applications.", example: "A design registered for a specific plastic container class follows classification protocols determined by the Controller." },
-{ num: "7", title: "Publication of Particulars of Registered Designs", text: "The Controller must publish prescribed particulars of a registered design as soon as possible after registration, making it open to public inspection.", example: "Competitors can view the published details of a newly registered watch bezel design in official records." },
-{ num: "8", title: "Power of Controller to Make Orders Regarding Substitution of Application", text: "Empowers the Controller to direct that an application proceed in the name of a claimant entitled by assignment, agreement, or operation of law.", example: "An application is reassigned to a corporate entity when an employee's rights are legally transferred during the pendency." },
-{ num: "9", title: "Certificate of Registration", text: "The Controller grants a certificate of registration to the proprietor upon successful registration and can furnish copies if lost.", example: "The proprietor receives an official certificate confirming the successful registration of their product casing design." },
-{ num: "10", title: "Register of Designs", text: "Maintains a register of designs at the patent office containing proprietor names, addresses, and transmission records, admissible as prima facie evidence.", example: "The digital register records current assignments and ownership changes for a registered furniture design." },
-{ num: "11", title: "Copyright on Registration", text: "Grants copyright in a registered design for an initial period of ten years, extendable for a second period of five years upon application and fee payment.", example: "A design registered in 2026 secures copyright protection through 2036, with an option to extend to 2041." },
-{ num: "12", title: "Restoration of Lapsed Designs", text: "Allows the proprietor to apply for the restoration of a design that lapsed due to non-payment of extension fees within one year of cessation.", example: "A proprietor applies to restore a design protection that lapsed three months prior due to a missed renewal window." },
-{ num: "13", title: "Procedure for Disposal of Applications for Restoration", text: "The Controller restores the design registration if satisfied that the failure to pay the fee was unintentional and without undue delay.", example: "The Controller approves a restoration request after verifying that the fee payment delay was caused by a banking error." },
-{ num: "14", title: "Rights of Proprietor of Restored Lapsed Design", text: "Subject conditions protect third parties who began utilizing the design between the date of lapse and the date of restoration, with no suits allowed for interim acts.", example: "A competitor who manufactured items during the lapsed window is protected from infringement suits upon restoration." },
-{ num: "15", title: "Requirements Before Delivery on Sales", text: "Requires the proprietor to furnish exact representations and mark articles as registered prior to delivery on sale to recover damages for infringement.", example: "A toy manufacturer stamps the registration mark onto packaging before commercial distribution to preserve penalty recovery rights." },
-{ num: "16", title: "Effect of Disclosure on Copyright", text: "Disclosures made in breach of good faith or certain confidential textile design orders do not constitute publication sufficient to invalidate copyright.", example: "A design leaked unlawfully by a third party before filing does not destroy the novelty required for subsequent registration." },
-{ num: "17", title: "Inspection of Registered Designs", text: "Permits any person to inspect a registered design upon providing identification details and paying the prescribed fee, or obtain certified copies.", example: "An interested designer inspects active design files at the office to check existing pattern configurations." },
-{ num: "18", title: "Information as to Existence of Copyright", text: "The Controller must inform inquiring parties whether a registration exists, its class, registration date, and proprietor details upon request and fee payment.", example: "A manufacturer verifies whether a specific shoe sole pattern is still under active copyright protection." },
-{ num: "19", title: "Cancellation of Registration", text: "Any interested person may present a petition for cancellation to the Controller on grounds of prior publication, lack of novelty, or failure to meet definition criteria.", example: "A competitor petitions to cancel a design registration by proving the pattern was published overseas prior to the filing date." },
-{ num: "20", title: "Designs to Bind Government", text: "Registered designs bind the Government in the same manner as private individuals, subject to provisions of the Patents Act, 1970.", example: "Government agencies utilizing a patented design configuration must adhere to statutory provisions governing use." },
-{ num: "21", title: "Provisions as to Exhibitions", text: "Exhibiting a design at notified industrial or international exhibitions does not invalidate registration provided notice is given and application is filed within six months.", example: "Displaying a new appliance shape at an international trade exposition does not defeat novelty if application follows within six months." },
-{ num: "22", title: "Piracy of Registered Design", text: "Prohibits applying a registered design or fraudulent imitation for sale without consent, setting liabilities, recovery bounds, and transfer to High Court if cancellation grounds are raised.", example: "Selling unauthorized replica handbags bearing a protected pattern constitutes piracy, prompting damages and injunction suits." },
-{ num: "23", title: "Application of Certain Provisions of the Act as to Patents to Designs", text: "Applies patent provisions regarding certificates of validity and groundless threats of legal proceedings to registered designs with necessary modifications.", example: "A proprietor issuing groundless legal threats of piracy faces remedies analogous to those under patent law." },
-{ num: "24", title: "Fees", text: "Mandates prescribed fees for design registrations and related matters, rendering proceedings without paid fees ineffective.", example: "An application submitted without the corresponding statutory filing fee is treated as ineffective." },
-{ num: "25", title: "Notice of Trust Not to Be Entered in Registers", text: "Prohibits entering notices of any trust—expressed, implied, or constructive—in registers kept under the Act.", example: "Trust arrangements regarding design ownership are kept off the official public register." },
-{ num: "26", title: "Inspection of and Extracts from Registers", text: "Registers remain open to public inspection at convenient times, and certified sealed copies of entries are issued upon fee payment.", example: "Members of the public inspect computer printouts of register entries during official office hours." },
-{ num: "27", title: "Privilege of Reports of Controller", text: "Reports of or to the Controller, other than the annual report to Parliament, are confidential and not open to public inspection.", example: "Internal administrative examination reports remain privileged and inaccessible to outside litigants." },
-{ num: "28", title: "Prohibition and Publication where Application Abandoned", text: "Abandoned or refused applications and their associated drawings, specimens, or photographs are not open to public inspection or publication.", example: "Drawings from an abandoned design application remain confidential and are withheld from public view." },
-{ num: "29", title: "Power of Controller to Correct Clerical Errors", text: "The Controller may correct clerical errors in representations, names, addresses, or register entries upon a written request and fee.", example: "A misspelled proprietor name on a registration entry is corrected via a formal clerical correction request." },
-{ num: "30", title: "Entry of Assignment and Transmissions in Registers", text: "Requires registration of assignments, transmissions, licenses, or mortgages within specified timeframes to validate title and admit documents in court.", example: "A company acquiring design rights records the assignment agreement within six months to ensure legal admissibility." },
-{ num: "31", title: "Rectification of Register", text: "The Controller may order the rectification of the register by making, expunging, or varying entries upon application by an aggrieved person.", example: "An erroneous entry resulting from an administrative oversight is rectified following an aggrieved party's petition." },
-{ num: "32", title: "Powers of Controller in Proceedings Under Act", text: "The Controller possesses civil court powers regarding evidence, administering oaths, enforcing witness attendance, and awarding costs during proceedings.", example: "The Controller summons witnesses and compels document production during a formal cancellation hearing." },
-{ num: "33", title: "Exercise of Discretionary Power by Controller", text: "The Controller cannot exercise discretionary powers adversely against an applicant without giving them an opportunity to be heard if requested.", example: "An applicant is granted an oral hearing before the Controller refuses a design application on examination grounds." },
-{ num: "34", title: "Power of Controller to Take Directions of Central Government", text: "The Controller may apply to the Central Government for directions in cases of doubt or difficulty arising in administration.", example: "Complex administrative ambiguities prompt the Controller to seek guidance directly from the Central Government." },
-{ num: "35", title: "Refusal to Register a Design in Certain Cases", text: "The Controller may refuse to register a design whose use would be contrary to public order or morality, subject to High Court appeal.", example: "A design featuring explicit or inflammatory imagery is refused registration on public order grounds." },
-{ num: "36", title: "Appeals to the High Court", text: "Appeals against Controller orders must be made to the High Court within three months, with provisions for expert assistance and final decisions.", example: "An applicant appeals a Controller refusal order to the High Court within the prescribed three-month limit." },
-{ num: "37", title: "Evidence Before the Controller", text: "Evidence before the Controller is given by affidavit unless directed otherwise, with provisions for viva voce testimony or cross-examination.", example: "A witness is permitted to undergo cross-examination regarding affidavit statements submitted in a cancellation proceeding." },
-{ num: "38", title: "Certificate of Controller to be Evidence", text: "Certificates under the hand of the Controller serve as prima facie evidence of entries, matters, or things authorized under the Act.", example: "An official certificate from the Controller establishes the prima facie existence of a specific design registration entry." },
-{ num: "39", title: "Evidence of Documents in Patent Office", text: "Certified printed or written copies of documents and register extracts sealed by the patent office are admitted in evidence across Indian courts.", example: "A certified copy of a register entry is submitted as evidence in court without requiring original document production." },
-{ num: "40", title: "Applications and Notices by Post", text: "Authorized applications, notices, or documents required under the Act may be sent via post to the patent office or Controller.", example: "An opposition notice dispatched through registered postal mail is legally accepted by the patent office." },
-{ num: "41", title: "Declaration by Infant, Lunatic, etc.", text: "Legal guardians, managers, or court-appointed persons may execute statements and actions on behalf of persons disabled by infancy or lunacy.", example: "A court-appointed guardian files procedural statements on behalf of a minor who inherited design proprietorship." },
-{ num: "42", title: "Avoidance of Certain Restrictive Conditions", text: "Declares anti-competitive restrictive conditions in contracts, leases, or licenses forcing tied acquisitions or usage restrictions to be void.", example: "A clause in a design license forcing the licensee to purchase unrelated raw materials exclusively from the licensor is voided." },
-{ num: "43", title: "Agency", text: "Permits applications, communications, and attendances before the Controller through legal practitioners or registered patent agents, with residency requirements.", example: "An overseas design applicant appoints a locally resident registered patent agent to handle office communications." },
-{ num: "44", title: "Reciprocal Arrangement with Convention Countries", text: "Provides priority rights for design protection applications filed in convention countries, inter-governmental organizations, or the United Kingdom within six months.", example: "An applicant filing a design in a Paris Convention member state claims priority status for a subsequent Indian filing within six months." },
-{ num: "45", title: "Report of the Controller to Be Placed Before Parliament", text: "The Central Government must cause an annual report regarding the execution of the Act by the Controller to be placed before both Houses of Parliament.", example: "Parliament reviews the annual implementation report submitted by the Central Government regarding design administration." },
-{ num: "46", title: "Protection of Security of India", text: "Empowers the Controller to withhold information or cancel registrations concerning designs applied to military or war-related articles prejudicial to national security.", example: "A design application for a specialized military defense vehicle component is restricted to protect national security interests." },
-{ num: "47", title: "Power of Central Government to Make Rules", text: "Empowers the Central Government to notify rules carrying out provisions of the Act regarding forms, classifications, fees, and procedures.", example: "The government updates classification schedules and procedural filing rules via official gazette notifications." },
-{ num: "48", title: "Repeal and Savings", text: "Repeals the Designs Act, 1911, while saving existing notifications, rules, pending applications, and ongoing proceedings under transitional provisions.", example: "Pending applications initiated under the repealed 1911 Act continue to be governed and processed under saved statutory provisions." },
-]; 
-
-function renderResult(html) {
-  document.getElementById('hubResult').innerHTML = html;
-} 
-
-function searchSections() {
-  const secQuery = document.getElementById('sectionInput').value.trim().toLowerCase();
-  const kwQuery = document.getElementById('keywordInput').value.trim().toLowerCase(); 
-
-  if (!secQuery && !kwQuery) {
-    renderResult("Enter a section number or keyword to search.");
-    return;
-  } 
-
-  let matches = [];
-  if (secQuery) {
-    matches = patentSections.filter(s => s.num.toLowerCase() === secQuery || s.num.toLowerCase().startsWith(secQuery));
-  } else if (kwQuery) {
-    matches = patentSections.filter(s =>
-      s.title.toLowerCase().includes(kwQuery) ||
-      s.text.toLowerCase().includes(kwQuery) ||
-      s.example.toLowerCase().includes(kwQuery)
-    );
-  } 
-
-  if (matches.length === 0) {
-    renderResult("No matching section found in the current dataset. Try a different section number or keyword.");
-    return;
-  } 
-
-  const html = matches.map(s => `
-    <h3>Section ${s.num} — ${s.title}</h3>
-    <div>${s.text}</div>
-    <div class="ex">Example: ${s.example}</div>
-  `).join('<hr style="margin:14px 0;border:none;border-top:1px solid #e2e8f0;">'); 
-
-  renderResult(html);
-} 
-
-document.getElementById('executeBtn').addEventListener('click', searchSections); 
-
-document.getElementById('clearBtn').addEventListener('click', () => {
-  document.getElementById('sectionInput').value = '';
-  document.getElementById('keywordInput').value = '';
-  renderResult("Awaiting query execution. Enter a targeted section or key phrase above to generate clean, structured results.");
-}); 
 
 document.getElementById('lockBtn').addEventListener('click', () => {
-  document.getElementById('hubScreen').style.display = 'none';
-  document.querySelector('.card').style.display = 'block';
-  badge.textContent = '🔒';
-  setStatus('System locked. Say your voice password to unlock.', 'info');
+  hubScreen.style.display = 'none';
+  loginCard.style.display = 'block';
+  badge.textContent = '🔒';
+  setStatus('System locked. Say your voice password to unlock.', 'info');
+});
+
+/* =====================================================================
+   Designs Act, 2000 — statutory search hub
+   ===================================================================== */
+const designSections = [
+  { num: "1", title: "Short title, extent and commencement", text: "This Act may be called the Designs Act, 2000, extends to the whole of India, and comes into force on such date as the Central Government may appoint.", example: "The Act applies uniformly across India following its appointed commencement date." },
+  { num: "2(a)", title: "Definition of 'Article'", text: "An article means any article of manufacture and any substance, artificial, or partly artificial and partly natural; and includes any part of an article capable of being made and sold separately.", example: "A detachable handle component manufactured and sold separately for cookware qualifies as an article." },
+  { num: "2(b)", title: "Definition of 'Controller'", text: "The Controller means the Controller-General of Patents, Designs and Trade Marks referred to in section 3.", example: "The designated Controller-General handles administrative filings and oversight for design registrations." },
+  { num: "2(c)", title: "Definition of 'Copyright'", text: "Copyright means the exclusive right to apply a design to any article in any class in which the design is registered.", example: "The registered proprietor holds the exclusive right to apply a specific pattern to textile items within the registered class." },
+  { num: "2(d)", title: "Definition of 'Design'", text: "Design means only the features of shape, configuration, pattern, ornament or composition of lines or colours applied to any article by any industrial process which appeal to and are judged solely by the eye, excluding mere mechanical devices, trademarks, property marks, or artistic works.", example: "The unique surface pattern etched onto a dinner plate appeals solely to the eye and constitutes a protectable design." },
+  { num: "2(e)", title: "Definition of 'High Court'", text: "High Court shall have the same meaning as assigned to it in clause (i) of section 2 of the Patents Act, 1970.", example: "Appeals from Controller decisions on designs are directed to the appropriate High Court." },
+  { num: "2(f)", title: "Definition of 'Legal Representative'", text: "Legal representative means a person who in law represents the estate of a deceased person.", example: "An executor manages design rights on behalf of a deceased designer's estate." },
+  { num: "2(g)", title: "Definition of 'Original'", text: "Original, in relation to a design, means originating from the author of such design and includes cases which though old in themselves yet are new in their application.", example: "Applying a traditional geometric folk motif to a completely modern electronic appliance casing creates an original design application." },
+  { num: "2(h)", title: "Definition of 'Patent Office'", text: "Patent office means the patent office referred to in section 74 of the Patents Act, 1970.", example: "Design applications are filed and processed through the designated patent office." },
+  { num: "2(i)", title: "Definition of 'Prescribed'", text: "Prescribed means prescribed by rules made under this Act.", example: "Procedural deadlines and forms are governed by what is prescribed under the rules." },
+  { num: "2(j)", title: "Definition of 'Proprietor of a new or original design'", text: "Defines who holds proprietorship based on whether the design was commissioned, acquired, or created independently by the author.", example: "A company that commissions an industrial designer to create a product shape for consideration is considered the proprietor." },
+  { num: "3", title: "Controller and Other Officers", text: "The Controller-General acts as the Controller of Designs, assisted by appointed examiners and officers functioning under superintendence and direction.", example: "Examiners review design applications and submit reports under the superintendence of the Controller." },
+  { num: "4", title: "Prohibition of Registration of Certain Designs", text: "Prohibits the registration of designs that are not new or original, have been previously disclosed, are indistinguishable from known designs, or contain scandalous or obscene matter.", example: "A shape identical to an existing common water bottle with no significant alterations cannot be registered." },
+  { num: "5", title: "Application for Registration of Designs", text: "Allows the Controller to register a new or original design upon application in the prescribed form, following examination and report.", example: "An applicant files the requisite form, fee, and representations for a novel chair design to undergo examination." },
+  { num: "6", title: "Registration to be in Respect of Particular Article", text: "A design is registered in respect of a particular article or articles within a prescribed class, with provisions for multiple applications.", example: "A design registered for a specific plastic container class follows classification protocols determined by the Controller." },
+  { num: "7", title: "Publication of Particulars of Registered Designs", text: "The Controller must publish prescribed particulars of a registered design as soon as possible after registration, making it open to public inspection.", example: "Competitors can view the published details of a newly registered watch bezel design in official records." },
+  { num: "8", title: "Power of Controller to Make Orders Regarding Substitution of Application", text: "Empowers the Controller to direct that an application proceed in the name of a claimant entitled by assignment, agreement, or operation of law.", example: "An application is reassigned to a corporate entity when an employee's rights are legally transferred during the pendency." },
+  { num: "9", title: "Certificate of Registration", text: "The Controller grants a certificate of registration to the proprietor upon successful registration and can furnish copies if lost.", example: "The proprietor receives an official certificate confirming the successful registration of their product casing design." },
+  { num: "10", title: "Register of Designs", text: "Maintains a register of designs at the patent office containing proprietor names, addresses, and transmission records, admissible as prima facie evidence.", example: "The digital register records current assignments and ownership changes for a registered furniture design." },
+  { num: "11", title: "Copyright on Registration", text: "Grants copyright in a registered design for an initial period of ten years, extendable for a second period of five years upon application and fee payment.", example: "A design registered in 2026 secures copyright protection through 2036, with an option to extend to 2041." },
+  { num: "12", title: "Restoration of Lapsed Designs", text: "Allows the proprietor to apply for the restoration of a design that lapsed due to non-payment of extension fees within one year of cessation.", example: "A proprietor applies to restore a design protection that lapsed three months prior due to a missed renewal window." },
+  { num: "13", title: "Procedure for Disposal of Applications for Restoration", text: "The Controller restores the design registration if satisfied that the failure to pay the fee was unintentional and without undue delay.", example: "The Controller approves a restoration request after verifying that the fee payment delay was caused by a banking error." },
+  { num: "14", title: "Rights of Proprietor of Restored Lapsed Design", text: "Subject conditions protect third parties who began utilizing the design between the date of lapse and the date of restoration, with no suits allowed for interim acts.", example: "A competitor who manufactured items during the lapsed window is protected from infringement suits upon restoration." },
+  { num: "15", title: "Requirements Before Delivery on Sales", text: "Requires the proprietor to furnish exact representations and mark articles as registered prior to delivery on sale to recover damages for infringement.", example: "A toy manufacturer stamps the registration mark onto packaging before commercial distribution to preserve penalty recovery rights." },
+  { num: "16", title: "Effect of Disclosure on Copyright", text: "Disclosures made in breach of good faith or certain confidential textile design orders do not constitute publication sufficient to invalidate copyright.", example: "A design leaked unlawfully by a third party before filing does not destroy the novelty required for subsequent registration." },
+  { num: "17", title: "Inspection of Registered Designs", text: "Permits any person to inspect a registered design upon providing identification details and paying the prescribed fee, or obtain certified copies.", example: "An interested designer inspects active design files at the office to check existing pattern configurations." },
+  { num: "18", title: "Information as to Existence of Copyright", text: "The Controller must inform inquiring parties whether a registration exists, its class, registration date, and proprietor details upon request and fee payment.", example: "A manufacturer verifies whether a specific shoe sole pattern is still under active copyright protection." },
+  { num: "19", title: "Cancellation of Registration", text: "Any interested person may present a petition for cancellation to the Controller on grounds of prior publication, lack of novelty, or failure to meet definition criteria.", example: "A competitor petitions to cancel a design registration by proving the pattern was published overseas prior to the filing date." },
+  { num: "20", title: "Designs to Bind Government", text: "Registered designs bind the Government in the same manner as private individuals, subject to provisions of the Patents Act, 1970.", example: "Government agencies utilizing a patented design configuration must adhere to statutory provisions governing use." },
+  { num: "21", title: "Provisions as to Exhibitions", text: "Exhibiting a design at notified industrial or international exhibitions does not invalidate registration provided notice is given and application is filed within six months.", example: "Displaying a new appliance shape at an international trade exposition does not defeat novelty if application follows within six months." },
+  { num: "22", title: "Piracy of Registered Design", text: "Prohibits applying a registered design or fraudulent imitation for sale without consent, setting liabilities, recovery bounds, and transfer to High Court if cancellation grounds are raised.", example: "Selling unauthorized replica handbags bearing a protected pattern constitutes piracy, prompting damages and injunction suits." },
+  { num: "23", title: "Application of Certain Provisions of the Act as to Patents to Designs", text: "Applies patent provisions regarding certificates of validity and groundless threats of legal proceedings to registered designs with necessary modifications.", example: "A proprietor issuing groundless legal threats of piracy faces remedies analogous to those under patent law." },
+  { num: "24", title: "Fees", text: "Mandates prescribed fees for design registrations and related matters, rendering proceedings without paid fees ineffective.", example: "An application submitted without the corresponding statutory filing fee is treated as ineffective." },
+  { num: "25", title: "Notice of Trust Not to Be Entered in Registers", text: "Prohibits entering notices of any trust — expressed, implied, or constructive — in registers kept under the Act.", example: "Trust arrangements regarding design ownership are kept off the official public register." },
+  { num: "26", title: "Inspection of and Extracts from Registers", text: "Registers remain open to public inspection at convenient times, and certified sealed copies of entries are issued upon fee payment.", example: "Members of the public inspect register entries during official office hours." },
+  { num: "27", title: "Privilege of Reports of Controller", text: "Reports of or to the Controller, other than the annual report to Parliament, are confidential and not open to public inspection.", example: "Internal administrative examination reports remain privileged and inaccessible to outside litigants." },
+  { num: "28", title: "Prohibition and Publication where Application Abandoned", text: "Abandoned or refused applications and their associated drawings, specimens, or photographs are not open to public inspection or publication.", example: "Drawings from an abandoned design application remain confidential and are withheld from public view." },
+  { num: "29", title: "Power of Controller to Correct Clerical Errors", text: "The Controller may correct clerical errors in representations, names, addresses, or register entries upon a written request and fee.", example: "A misspelled proprietor name on a registration entry is corrected via a formal clerical correction request." },
+  { num: "30", title: "Entry of Assignment and Transmissions in Registers", text: "Requires registration of assignments, transmissions, licenses, or mortgages within specified timeframes to validate title and admit documents in court.", example: "A company acquiring design rights records the assignment agreement within six months to ensure legal admissibility." },
+  { num: "31", title: "Rectification of Register", text: "The Controller may order the rectification of the register by making, expunging, or varying entries upon application by an aggrieved person.", example: "An erroneous entry resulting from an administrative oversight is rectified following an aggrieved party's petition." },
+  { num: "32", title: "Powers of Controller in Proceedings Under Act", text: "The Controller possesses civil court powers regarding evidence, administering oaths, enforcing witness attendance, and awarding costs during proceedings.", example: "The Controller summons witnesses and compels document production during a formal cancellation hearing." },
+  { num: "33", title: "Exercise of Discretionary Power by Controller", text: "The Controller cannot exercise discretionary powers adversely against an applicant without giving them an opportunity to be heard if requested.", example: "An applicant is granted an oral hearing before the Controller refuses a design application on examination grounds." },
+  { num: "34", title: "Power of Controller to Take Directions of Central Government", text: "The Controller may apply to the Central Government for directions in cases of doubt or difficulty arising in administration.", example: "Complex administrative ambiguities prompt the Controller to seek guidance directly from the Central Government." },
+  { num: "35", title: "Refusal to Register a Design in Certain Cases", text: "The Controller may refuse to register a design whose use would be contrary to public order or morality, subject to High Court appeal.", example: "A design featuring explicit or inflammatory imagery is refused registration on public order grounds." },
+  { num: "36", title: "Appeals to the High Court", text: "Appeals against Controller orders must be made to the High Court within three months, with provisions for expert assistance and final decisions.", example: "An applicant appeals a Controller refusal order to the High Court within the prescribed three-month limit." },
+  { num: "37", title: "Evidence Before the Controller", text: "Evidence before the Controller is given by affidavit unless directed otherwise, with provisions for viva voce testimony or cross-examination.", example: "A witness is permitted to undergo cross-examination regarding affidavit statements submitted in a cancellation proceeding." },
+  { num: "38", title: "Certificate of Controller to be Evidence", text: "Certificates under the hand of the Controller serve as prima facie evidence of entries, matters, or things authorized under the Act.", example: "An official certificate from the Controller establishes the prima facie existence of a specific design registration entry." },
+  { num: "39", title: "Evidence of Documents in Patent Office", text: "Certified printed or written copies of documents and register extracts sealed by the patent office are admitted in evidence across Indian courts.", example: "A certified copy of a register entry is submitted as evidence in court without requiring original document production." },
+  { num: "40", title: "Applications and Notices by Post", text: "Authorized applications, notices, or documents required under the Act may be sent via post to the patent office or Controller.", example: "An opposition notice dispatched through registered postal mail is legally accepted by the patent office." },
+  { num: "41", title: "Declaration by Infant, Lunatic, etc.", text: "Legal guardians, managers, or court-appointed persons may execute statements and actions on behalf of persons disabled by infancy or lunacy.", example: "A court-appointed guardian files procedural statements on behalf of a minor who inherited design proprietorship." },
+  { num: "42", title: "Avoidance of Certain Restrictive Conditions", text: "Declares anti-competitive restrictive conditions in contracts, leases, or licenses forcing tied acquisitions or usage restrictions to be void.", example: "A clause in a design license forcing the licensee to purchase unrelated raw materials exclusively from the licensor is voided." },
+  { num: "43", title: "Agency", text: "Permits applications, communications, and attendances before the Controller through legal practitioners or registered patent agents, with residency requirements.", example: "An overseas design applicant appoints a locally resident registered patent agent to handle office communications." },
+  { num: "44", title: "Reciprocal Arrangement with Convention Countries", text: "Provides priority rights for design protection applications filed in convention countries, inter-governmental organizations, or the United Kingdom within six months.", example: "An applicant filing a design in a Paris Convention member state claims priority status for a subsequent Indian filing within six months." },
+  { num: "45", title: "Report of the Controller to Be Placed Before Parliament", text: "The Central Government must cause an annual report regarding the execution of the Act by the Controller to be placed before both Houses of Parliament.", example: "Parliament reviews the annual implementation report submitted by the Central Government regarding design administration." },
+  { num: "46", title: "Protection of Security of India", text: "Empowers the Controller to withhold information or cancel registrations concerning designs applied to military or war-related articles prejudicial to national security.", example: "A design application for a specialized military defense vehicle component is restricted to protect national security interests." },
+  { num: "47", title: "Power of Central Government to Make Rules", text: "Empowers the Central Government to notify rules carrying out provisions of the Act regarding forms, classifications, fees, and procedures.", example: "The government updates classification schedules and procedural filing rules via official gazette notifications." },
+  { num: "48", title: "Repeal and Savings", text: "Repeals the Designs Act, 1911, while saving existing notifications, rules, pending applications, and ongoing proceedings under transitional provisions.", example: "Pending applications initiated under the repealed 1911 Act continue to be governed and processed under saved statutory provisions." }
+];
+
+const hubResult = document.getElementById('hubResult');
+const browseList = document.getElementById('browseList');
+const browseBtn = document.getElementById('browseBtn');
+const sectionInput = document.getElementById('sectionInput');
+const keywordInput = document.getElementById('keywordInput');
+
+function cardHTML(s) {
+  return `
+    <div class="section-card">
+      <h3><span class="section-num">§ ${s.num}</span> ${s.title}</h3>
+      <div class="body-text">${s.text}</div>
+      <div class="ex"><b>Example:</b> ${s.example}</div>
+    </div>
+  `;
+}
+
+function renderEmpty(msg) {
+  hubResult.innerHTML = `<div class="empty-state">${msg}</div>`;
+}
+
+function renderResults(matches) {
+  const countLabel = matches.length === 1 ? '1 result' : matches.length + ' results';
+  hubResult.innerHTML =
+    `<div class="result-count">${countLabel}</div>` +
+    matches.map(cardHTML).join('');
+}
+
+function searchSections() {
+  browseList.style.display = 'none';
+  const secQuery = sectionInput.value.trim().toLowerCase();
+  const kwQuery = keywordInput.value.trim().toLowerCase();
+
+  if (!secQuery && !kwQuery) {
+    renderEmpty('Enter a section number or a keyword above, then hit Search.');
+    return;
+  }
+
+  let matches = [];
+  if (secQuery) {
+    matches = designSections.filter(s =>
+      s.num.toLowerCase() === secQuery || s.num.toLowerCase().startsWith(secQuery)
+    );
+  } else {
+    matches = designSections.filter(s =>
+      s.title.toLowerCase().includes(kwQuery) ||
+      s.text.toLowerCase().includes(kwQuery) ||
+      s.example.toLowerCase().includes(kwQuery)
+    );
+  }
+
+  if (matches.length === 0) {
+    renderEmpty('No matching section found. Try a different section number (e.g. 4, 22, 2(a)) or keyword (e.g. piracy, cancellation, copyright).');
+    return;
+  }
+
+  renderResults(matches);
+}
+
+document.getElementById('executeBtn').addEventListener('click', searchSections);
+sectionInput.addEventListener('keydown', e => { if (e.key === 'Enter') searchSections(); });
+keywordInput.addEventListener('keydown', e => { if (e.key === 'Enter') searchSections(); });
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  sectionInput.value = '';
+  keywordInput.value = '';
+  browseList.style.display = 'none';
+  renderEmpty('Enter a section number or a keyword above, then hit Search.');
+});
+
+browseBtn.addEventListener('click', () => {
+  const isOpen = browseList.style.display === 'flex';
+  if (isOpen) {
+    browseList.style.display = 'none';
+    browseBtn.textContent = 'Browse all 57 sections';
+  } else {
+    browseList.style.display = 'flex';
+    browseList.style.flexDirection = 'column';
+    browseList.style.gap = '14px';
+    browseList.innerHTML = designSections.map(cardHTML).join('');
+    browseBtn.textContent = 'Hide full section list';
+    hubResult.innerHTML = '';
+  }
 });
 </script>
 </body>
