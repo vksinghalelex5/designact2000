@@ -162,6 +162,7 @@ const badge = document.getElementById('badge');
 
 let enrolledPrint = null;
 let audioContext = null;
+let attemptCount = 0;
 
 function setStatus(msg, type) {
   statusEl.textContent = msg;
@@ -277,6 +278,7 @@ enrollBtn.addEventListener('click', async () => {
     setStatus('Say your passphrase now (2.5s recording)...', 'info');
 
     enrolledPrint = await recordAndExtract();
+    attemptCount = 0;
 
     enrollBtn.classList.remove('recording');
     enrollBtn.textContent = '🎙️ Reset Voice Password';
@@ -304,10 +306,12 @@ verifyBtn.addEventListener('click', async () => {
 
     const THRESHOLD = 0.6; // tune based on real-world testing
     if (similarity >= THRESHOLD) {
+      attemptCount = 0;
       setStatus(`Welcome, admin. Login successful (score ${similarity.toFixed(2)}).`, 'ok');
       badge.textContent = '🔓';
     } else {
-      setStatus(`Voice did not match (score ${similarity.toFixed(2)}). Try again.`, 'err');
+      attemptCount++;
+      setStatus(`Voice did not match (score ${similarity.toFixed(2)}). Click Unlock and say it again — attempt ${attemptCount}.`, 'err');
       badge.textContent = '🔒';
     }
   } catch (err) {
