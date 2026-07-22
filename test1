@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Voice Biometric Login</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1e1b4b, #0f172a);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #e2e8f0;
+  }
+  .card {
+    width: 380px;
+    background: #111827;
+    border: 1px solid #2d3748;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+    text-align: center;
+  }
+  .sub {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  label {
+    font-size: 12px;
+    color: #94a3b8;
+    display: block;
+    margin-bottom: 6px;
+  }
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  input:disabled { opacity: 0.6; }
+  .mic-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-record {
+    flex: 1;
+    background: #312e81;
+    color: #e0e7ff;
+  }
+  .btn-record.recording {
+    background: #7f1d1d;
+    color: #fecaca;
+    animation: pulse 1s infinite;
+  }
+  .btn-primary {
+    width: 100%;
+    background: #4f46e5;
+    color: white;
+  }
+  .btn-primary:hover:not(:disabled) { background: #4338ca; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  .status {
+    margin-top: 16px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: center;
+    min-height: 18px;
+  }
+  .status.ok { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .status.err { background: rgba(239,68,68,0.15); color: #f87171; }
+  .status.info { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+  .waveform {
+    height: 40px;
+    background: #1f2937;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 8px;
+    overflow: hidden;
+  }
+  .waveform div {
+    width: 3px;
+    background: #6366f1;
+    border-radius: 2px;
+    min-height: 2px;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #1f2937;
+    color: #94a3b8;
+    margin-left: 6px;
+  }
+  .locked-badge {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="locked-badge" id="badge">🔒</div>
+  <h1>Secure Login</h1>
+  <div class="sub">Username is fixed. Password is your voice.</div>
+
+  <label>Username</label>
+  <input type="text" value="admin" disabled>
+
+  <label>Voice Password <span class="tag" id="enrollTag">not enrolled</span></label>
+  <div class="waveform" id="waveform"></div>
+
+  <div class="mic-row">
+    <button class="btn-record" id="enrollBtn">🎙️ Enroll Voice</button>
+    <button class="btn-record" id="verifyBtn" disabled>✅ Verify Voice</button>
+  </div>
+
+  <button class="btn-primary" id="loginBtn" disabled>Login</button>
+
+  <div class="status info" id="status">Enroll your voice passphrase first.</div>
+</div>
+
+<script>
+const enrollBtn = document.getElementById('enrollBtn');
+const verifyBtn = document.getElementById('verifyBtn');
+const loginBtn = document.getElementById('loginBtn');
+const statusEl = document.getElementById('status');
+const waveformEl = document.getElementById('waveform');
+const enrollTag = document.getElementById('enrollTag');
+const badge = document.getElementById('badge');
+
+let enrolledPrint = null;
+let audioContext = null;
+
+function setStatus(msg, type) {
+  statusEl.textContent = msg;
+  statusEl.className = 'status ' + (type || 'info');
+}
+
+function drawWaveform(samples) {
+  waveformEl.innerHTML = '';
+  const step = Math.max(1, Math.floor(samples.length / 60));
+  for (let i = 0; i < samples.length; i += step) {
+    const bar = document.createElement('div');
+    const h = Math.max(2, Math.abs(samples[i]) * 40);
+    bar.style.height = h + 'px';
+    waveformEl.appendChild(bar);
+  }
+}
+
+// Record 2.5s of audio and extract a simple "voiceprint":
+// an energy-envelope + zero-crossing-rate feature vector.
+async function recordAndExtract(durationMs = 2500) {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+  const source = audioContext.createMediaStreamSource(stream);
+  const processor = audioContext.createScriptProcessor(2048, 1, 1);
+
+  const chunks = [];
+  source.connect(processor);
+  processor.connect(audioContext.destination);
+
+  processor.onaudioprocess = (e) => {
+    const input = e.inputBuffer.getChannelData(0);
+    chunks.push(new Float32Array(input));
+  };
+
+  await new Promise((resolve) => setTimeout(resolve, durationMs));
+
+  processor.disconnect();
+  source.disconnect();
+  stream.getTracks().forEach(t => t.stop());
+
+  // Flatten
+  let all = new Float32Array(chunks.reduce((a, c) => a + c.length, 0));
+  let offset = 0;
+  for (const c of chunks) { all.set(c, offset); offset += c.length; }
+
+  drawWaveform(all);
+
+  // Extract feature vector: split into N frames, compute RMS energy
+  // and zero-crossing rate per frame -> normalized fingerprint.
+  const N_FRAMES = 32;
+  const frameSize = Math.floor(all.length / N_FRAMES) || 1;
+  const energy = [];
+  const zcr = [];
+
+  for (let f = 0; f < N_FRAMES; f++) {
+    const start = f * frameSize;
+    const end = Math.min(start + frameSize, all.length);
+    let sumSq = 0, crossings = 0;
+    for (let i = start; i < end; i++) {
+      sumSq += all[i] * all[i];
+      if (i > start && ((all[i - 1] < 0 && all[i] >= 0) || (all[i - 1] >= 0 && all[i] < 0))) {
+        crossings++;
+      }
+    }
+    const frameLen = Math.max(1, end - start);
+    energy.push(Math.sqrt(sumSq / frameLen));
+    zcr.push(crossings / frameLen);
+  }
+
+  // Normalize each feature set to unit scale so loudness alone
+  // doesn't dominate the match.
+  const norm = (arr) => {
+    const max = Math.max(...arr, 1e-6);
+    return arr.map(v => v / max);
+  };
+
+  return { energy: norm(energy), zcr: norm(zcr) };
+}
+
+// Cosine-similarity style comparison between two fingerprints
+function compareFingerprints(a, b) {
+  const cosSim = (x, y) => {
+    let dot = 0, magX = 0, magY = 0;
+    for (let i = 0; i < x.length; i++) {
+      dot += x[i] * y[i];
+      magX += x[i] * x[i];
+      magY += y[i] * y[i];
+    }
+    return dot / (Math.sqrt(magX) * Math.sqrt(magY) + 1e-9);
+  };
+  const energyScore = cosSim(a.energy, b.energy);
+  const zcrScore = cosSim(a.zcr, b.zcr);
+  return (energyScore * 0.7 + zcrScore * 0.3); // energy weighted higher
+}
+
+enrollBtn.addEventListener('click', async () => {
+  try {
+    enrollBtn.classList.add('recording');
+    enrollBtn.textContent = '🔴 Listening...';
+    setStatus('Say your passphrase now (2.5s recording)...', 'info');
+
+    enrolledPrint = await recordAndExtract();
+
+    enrollBtn.classList.remove('recording');
+    enrollBtn.textContent = '🎙️ Re-enroll Voice';
+    enrollTag.textContent = 'enrolled ✓';
+    verifyBtn.disabled = false;
+    setStatus('Voice enrolled. Now click Verify to test login.', 'ok');
+  } catch (err) {
+    enrollBtn.classList.remove('recording');
+    enrollBtn.textContent = '🎙️ Enroll Voice';
+    setStatus('Microphone access failed: ' + err.message, 'err');
+  }
+});
+
+verifyBtn.addEventListener('click', async () => {
+  try {
+    verifyBtn.classList.add('recording');
+    verifyBtn.textContent = '🔴 Listening...';
+    setStatus('Say your passphrase to verify...', 'info');
+
+    const attemptPrint = await recordAndExtract();
+    const similarity = compareFingerprints(enrolledPrint, attemptPrint);
+
+    verifyBtn.classList.remove('recording');
+    verifyBtn.textContent = '✅ Verify Voice';
+
+    const THRESHOLD = 0.82; // tune based on real-world testing
+    if (similarity >= THRESHOLD) {
+      setStatus(`Voice match confirmed (score ${similarity.toFixed(2)}).`, 'ok');
+      loginBtn.disabled = false;
+      badge.textContent = '🔓';
+    } else {
+      setStatus(`Voice did not match (score ${similarity.toFixed(2)}). Try again.`, 'err');
+      loginBtn.disabled = true;
+    }
+  } catch (err) {
+    verifyBtn.classList.remove('recording');
+    verifyBtn.textContent = '✅ Verify Voice';
+    setStatus('Microphone access failed: ' + err.message, 'err');
+  }
+});
+
+loginBtn.addEventListener('click', () => {
+  setStatus('Welcome, admin. Login successful.', 'ok');
+});
+</script>
+</body>
+</html>
