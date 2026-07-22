@@ -140,17 +140,15 @@
   <label>Username</label>
   <input type="text" value="admin" disabled>
 
-  <label>Voice Password <span class="tag" id="enrollTag">not enrolled</span></label>
+  <label>Voice Password <span class="tag" id="enrollTag">not set</span></label>
   <div class="waveform" id="waveform"></div>
 
   <div class="mic-row">
-    <button class="btn-record" id="enrollBtn">🎙️ Enroll Voice</button>
-    <button class="btn-record" id="verifyBtn" disabled>✅ Verify Voice</button>
+    <button class="btn-record" id="enrollBtn">🎙️ Set Voice Password</button>
+    <button class="btn-record" id="verifyBtn" disabled>🔓 Unlock</button>
   </div>
 
-  <button class="btn-primary" id="loginBtn" disabled>Login</button>
-
-  <div class="status info" id="status">Enroll your voice passphrase first.</div>
+  <div class="status info" id="status">Set your voice password first.</div>
 </div>
 
 <script>
@@ -281,13 +279,13 @@ enrollBtn.addEventListener('click', async () => {
     enrolledPrint = await recordAndExtract();
 
     enrollBtn.classList.remove('recording');
-    enrollBtn.textContent = '🎙️ Re-enroll Voice';
-    enrollTag.textContent = 'enrolled ✓';
+    enrollBtn.textContent = '🎙️ Reset Voice Password';
+    enrollTag.textContent = 'password set ✓';
     verifyBtn.disabled = false;
-    setStatus('Voice enrolled. Now click Verify to test login.', 'ok');
+    setStatus('Voice password set. Click Unlock and say it again to log in.', 'ok');
   } catch (err) {
     enrollBtn.classList.remove('recording');
-    enrollBtn.textContent = '🎙️ Enroll Voice';
+    enrollBtn.textContent = '🎙️ Set Voice Password';
     setStatus('Microphone access failed: ' + err.message, 'err');
   }
 });
@@ -296,32 +294,27 @@ verifyBtn.addEventListener('click', async () => {
   try {
     verifyBtn.classList.add('recording');
     verifyBtn.textContent = '🔴 Listening...';
-    setStatus('Say your passphrase to verify...', 'info');
+    setStatus('Say your voice password to unlock...', 'info');
 
     const attemptPrint = await recordAndExtract();
     const similarity = compareFingerprints(enrolledPrint, attemptPrint);
 
     verifyBtn.classList.remove('recording');
-    verifyBtn.textContent = '✅ Verify Voice';
+    verifyBtn.textContent = '🔓 Unlock';
 
     const THRESHOLD = 0.6; // tune based on real-world testing
     if (similarity >= THRESHOLD) {
-      setStatus(`Voice match confirmed (score ${similarity.toFixed(2)}).`, 'ok');
-      loginBtn.disabled = false;
+      setStatus(`Welcome, admin. Login successful (score ${similarity.toFixed(2)}).`, 'ok');
       badge.textContent = '🔓';
     } else {
       setStatus(`Voice did not match (score ${similarity.toFixed(2)}). Try again.`, 'err');
-      loginBtn.disabled = true;
+      badge.textContent = '🔒';
     }
   } catch (err) {
     verifyBtn.classList.remove('recording');
-    verifyBtn.textContent = '✅ Verify Voice';
+    verifyBtn.textContent = '🔓 Unlock';
     setStatus('Microphone access failed: ' + err.message, 'err');
   }
-});
-
-loginBtn.addEventListener('click', () => {
-  setStatus('Welcome, admin. Login successful.', 'ok');
 });
 </script>
 </body>
