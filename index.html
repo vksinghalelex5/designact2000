@@ -229,20 +229,55 @@ async function recordAndExtract(durationMs = 2500) {
   const frameSize = Math.floor(trimmed.length / N_FRAMES) || 1;
   const energy = [];
   const zcr = [];
+  const pitch = [];
+  const sampleRate = audioContext.sampleRate;
+
+  // Autocorrelation-based pitch detection for a single frame.
+  // Returns estimated fundamental frequency in Hz, or 0 if unvoiced.
+  function detectPitch(frame, sr) {
+    const minFreq = 75;   // lowest expected voice pitch
+    const maxFreq = 400;  // highest expected voice pitch
+    const minLag = Math.floor(sr / maxFreq);
+    const maxLag = Math.floor(sr / minFreq);
+
+    // Skip near-silent frames
+    let rms = 0;
+    for (let i = 0; i < frame.length; i++) rms += frame[i] * frame[i];
+    rms = Math.sqrt(rms / frame.length);
+    if (rms < 0.01) return 0;
+
+    let bestLag = -1;
+    let bestCorr = 0;
+    for (let lag = minLag; lag <= maxLag && lag < frame.length; lag++) {
+      let corr = 0;
+      for (let i = 0; i < frame.length - lag; i++) {
+        corr += frame[i] * frame[i + lag];
+      }
+      if (corr > bestCorr) {
+        bestCorr = corr;
+        bestLag = lag;
+      }
+    }
+    if (bestLag <= 0) return 0;
+    return sr / bestLag;
+  }
 
   for (let f = 0; f < N_FRAMES; f++) {
     const start = f * frameSize;
     const end = Math.min(start + frameSize, trimmed.length);
+    const frame = trimmed.slice(start, end);
+
     let sumSq = 0, crossings = 0;
-    for (let i = start; i < end; i++) {
-      sumSq += trimmed[i] * trimmed[i];
-      if (i > start && ((trimmed[i - 1] < 0 && trimmed[i] >= 0) || (trimmed[i - 1] >= 0 && trimmed[i] < 0))) {
+    for (let i = 0; i < frame.length; i++) {
+      sumSq += frame[i] * frame[i];
+      if (i > 0 && ((frame[i - 1] < 0 && frame[i] >= 0) || (frame[i - 1] >= 0 && frame[i] < 0))) {
         crossings++;
       }
     }
-    const frameLen = Math.max(1, end - start);
+    const frameLen = Math.max(1, frame.length);
     energy.push(Math.sqrt(sumSq / frameLen));
     zcr.push(crossings / frameLen);
+    pitch.push(detectPitch(frame, sampleRate));
   }
 
   // Normalize each feature set to unit scale so loudness alone
@@ -252,7 +287,11 @@ async function recordAndExtract(durationMs = 2500) {
     return arr.map(v => v / max);
   };
 
-  return { energy: norm(energy), zcr: norm(zcr) };
+  // Pitch is normalized against a fixed vocal range (not per-recording
+  // max) so it reflects actual Hz differences between takes/speakers.
+  const pitchNorm = pitch.map(p => p / 400);
+
+  return { energy: norm(energy), zcr: norm(zcr), pitch: pitchNorm };
 }
 
 // Cosine-similarity style comparison between two fingerprints
@@ -268,7 +307,8 @@ function compareFingerprints(a, b) {
   };
   const energyScore = cosSim(a.energy, b.energy);
   const zcrScore = cosSim(a.zcr, b.zcr);
-  return (energyScore * 0.7 + zcrScore * 0.3); // energy weighted higher
+  const pitchScore = cosSim(a.pitch, b.pitch);
+  return (pitchScore * 0.6 + energyScore * 0.25 + zcrScore * 0.15);
 }
 
 enrollBtn.addEventListener('click', async () => {
