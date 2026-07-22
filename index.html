@@ -129,6 +129,94 @@
     font-size: 32px;
     margin-bottom: 8px;
   }
+  .hub {
+    display: none;
+    width: 420px;
+    background: #ffffff;
+    color: #1e293b;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .hub h1 {
+    text-align: center;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px;
+    color: #0f172a;
+  }
+  .hub .hub-sub {
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .hub label {
+    color: #0f172a;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .hub input {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    padding: 14px;
+    font-size: 15px;
+  }
+  .hub-or {
+    text-align: center;
+    color: #94a3b8;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0 20px;
+  }
+  .hub-or::before, .hub-or::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #cbd5e1;
+  }
+  .hub-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .hub-buttons button {
+    padding: 14px;
+    font-size: 15px;
+  }
+  .btn-lock { background: #64748b; color: white; }
+  .btn-execute { background: #2563eb; color: white; }
+  .btn-clear { background: #94a3b8; color: white; }
+  .hub-result {
+    margin-top: 20px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px;
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.5;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .hub-result h3 {
+    margin: 0 0 6px;
+    color: #0f172a;
+    font-size: 15px;
+  }
+  .hub-result .ex {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #cbd5e1;
+    font-style: italic;
+    color: #64748b;
+  }
 </style>
 </head>
 <body>
@@ -149,6 +237,27 @@
   </div>
 
   <div class="status info" id="status">Set your voice password first.</div>
+</div>
+
+<div class="hub" id="hubScreen">
+  <h1>STATUTORY<br>SEARCH HUB</h1>
+  <div class="hub-sub">Search sections of the Indian Patent Act with real-world examples</div>
+
+  <label>Search by Section Number</label>
+  <input type="text" id="sectionInput" placeholder="Enter precise section number (e.g., 3)">
+
+  <div class="hub-or">OR</div>
+
+  <label>Search by Key Concept / Word</label>
+  <input type="text" id="keywordInput" placeholder="Enter keyword (e.g., infringement)">
+
+  <div class="hub-buttons">
+    <button class="btn-lock" id="lockBtn">Lock System</button>
+    <button class="btn-execute" id="executeBtn">Execute Search</button>
+    <button class="btn-clear" id="clearBtn">Clear Form</button>
+  </div>
+
+  <div class="hub-result" id="hubResult">Awaiting query execution. Enter a targeted section or key phrase above to generate clean, structured results.</div>
 </div>
 
 <script>
@@ -349,6 +458,8 @@ verifyBtn.addEventListener('click', async () => {
       attemptCount = 0;
       setStatus(`Welcome, admin. Login successful (score ${similarity.toFixed(2)}).`, 'ok');
       badge.textContent = '🔓';
+      document.querySelector('.card').style.display = 'none';
+      document.getElementById('hubScreen').style.display = 'block';
     } else {
       attemptCount++;
       setStatus(`Voice did not match (score ${similarity.toFixed(2)}). Click Unlock and say it again — attempt ${attemptCount}.`, 'err');
@@ -359,6 +470,86 @@ verifyBtn.addEventListener('click', async () => {
     verifyBtn.textContent = '🔓 Unlock';
     setStatus('Microphone access failed: ' + err.message, 'err');
   }
+});
+// ---- Statutory Search Hub logic ----
+// A representative set of sections from the Indian Patents Act, 1970
+// (as amended), each with a plain-language summary and a real-world
+// style example. Not all 163 sections are included, but search covers
+// the most commonly referenced ones by number and by keyword.
+const patentSections = [
+  { num: "2(1)(j)", title: "Definition of 'Invention'", text: "An invention means a new product or process involving an inventive step and capable of industrial application.", example: "A new drug molecule that treats a disease more effectively than existing options, and can be manufactured at scale, qualifies as an invention." },
+  { num: "2(1)(ja)", title: "Definition of 'Inventive Step'", text: "A feature that involves technical advance over existing knowledge, or economic significance, and makes the invention not obvious to a person skilled in the art.", example: "Redesigning a phone charger to charge 3x faster using a genuinely new circuit approach — not just swapping a bigger battery — would show inventive step." },
+  { num: "3", title: "What Are Not Inventions", text: "Lists exclusions such as frivolous inventions, discoveries of scientific principles, mere admixtures, methods of agriculture, and business methods.", example: "Simply discovering that a known fruit has a vitamin is not patentable, since it's a discovery, not an invention." },
+  { num: "3(d)", title: "Bar on New Forms of Known Substances", text: "A new form of a known substance is not patentable unless it results in enhanced efficacy.", example: "This was the core issue in the well-known Novartis 'Glivec' case, where a new crystalline form of a known cancer drug was denied a patent for lacking enhanced efficacy." },
+  { num: "6", title: "Who Can Apply for a Patent", text: "Applications may be made by the true and first inventor, an assignee, or their legal representative.", example: "An employee-inventor at a company typically assigns rights to the employer, who then files as the applicant." },
+  { num: "10", title: "Contents of Specification", text: "Requires a full description of the invention, best method of performing it, and clear claims defining the scope of protection.", example: "A patent application for a new water filter must describe exactly how it filters water and specify claims covering the filter design." },
+  { num: "11A", title: "Publication of Applications", text: "Patent applications are published 18 months after filing (or earlier on request), making them publicly accessible.", example: "A competitor can view a published but not-yet-granted application to assess the scope of a rival's pending claims." },
+  { num: "12-15", title: "Examination of Applications", text: "The Controller refers applications to an examiner who checks novelty, inventive step, and compliance; objections may be raised and must be addressed.", example: "An examiner may cite an older patent as 'prior art' requiring the applicant to narrow their claims to distinguish their invention." },
+  { num: "25", title: "Opposition to Grant", text: "Allows pre-grant opposition (by any person) and post-grant opposition (by interested persons within 12 months of grant) on grounds like lack of novelty.", example: "A generic drug manufacturer may file a pre-grant opposition against a pharma patent application it believes covers an obvious variation of an existing drug." },
+  { num: "48", title: "Rights of a Patentee", text: "Grants the exclusive right to prevent others from making, using, selling, or importing the patented product or process without consent.", example: "A patented smartphone chip design cannot be manufactured or sold by another company without a license from the patentee." },
+  { num: "53", title: "Term of Patent", text: "The term of a patent is 20 years from the date of filing.", example: "A patent filed in 2024 for a new solar panel technology will expire in 2044, after which anyone can use the design freely." },
+  { num: "64", title: "Revocation of Patents", text: "A patent may be revoked on grounds such as lack of novelty, obviousness, insufficient disclosure, or wrongful obtaining.", example: "If it's later shown that an 'invention' was actually publicly known before filing, the patent can be revoked in a revocation petition." },
+  { num: "83", title: "General Principles for Working of Patents", text: "States that patents are granted to encourage innovation while ensuring inventions are worked in India and not used to create a monopoly on importation.", example: "This section underlies why compulsory licensing exists — to prevent patents from blocking public access to essential technology." },
+  { num: "84", title: "Compulsory Licences", text: "After 3 years from grant, any person can apply for a compulsory licence if the patented invention isn't reasonably available to the public, affordable, or worked in India.", example: "In the Natco vs. Bayer case, a compulsory licence was granted for a cancer drug (Nexavar) because it was priced far beyond what most patients could afford." },
+  { num: "92", title: "Compulsory Licences on Notification by Central Government", text: "Allows the government to declare a national emergency or public health crisis situation, enabling expedited compulsory licensing.", example: "During a public health emergency, the government could fast-track compulsory licences for a critical vaccine patent." },
+  { num: "104", title: "Jurisdiction for Infringement Suits", text: "Infringement suits cannot be filed in a court lower than a District Court.", example: "A small business accused of patent infringement cannot have the case heard in a local magistrate's court — it must go to a District Court or higher." },
+  { num: "104A", title: "Burden of Proof in Process Patent Cases", text: "In certain process patent infringement cases, the burden shifts to the defendant to prove their process differs from the patented one.", example: "If a patented process makes a new chemical compound, a defendant making an identical compound may have to prove they used a different method." },
+  { num: "107", title: "Defences in Infringement Suits", text: "A defendant may argue grounds of revocation (e.g. lack of novelty) as a defence in an infringement suit.", example: "A company sued for infringement might argue the patent itself is invalid because the invention was already public knowledge before filing." },
+  { num: "108", title: "Reliefs in Infringement Suits", text: "Courts may grant injunctions and, at the plaintiff's option, either damages or an account of profits.", example: "A court might order a company to stop selling an infringing product (injunction) and either pay damages or hand over profits made from it." },
+  { num: "146", title: "Power of Controller to Call for Information", text: "The Controller can require patentees or licensees to furnish information on the extent to which the patented invention is worked commercially in India.", example: "A patentee holding an unused patent may be asked to report why the invention isn't being commercially worked in India." },
+];
+
+function renderResult(html) {
+  document.getElementById('hubResult').innerHTML = html;
+}
+
+function searchSections() {
+  const secQuery = document.getElementById('sectionInput').value.trim().toLowerCase();
+  const kwQuery = document.getElementById('keywordInput').value.trim().toLowerCase();
+
+  if (!secQuery && !kwQuery) {
+    renderResult("Enter a section number or keyword to search.");
+    return;
+  }
+
+  let matches = [];
+  if (secQuery) {
+    matches = patentSections.filter(s => s.num.toLowerCase() === secQuery || s.num.toLowerCase().startsWith(secQuery));
+  } else if (kwQuery) {
+    matches = patentSections.filter(s =>
+      s.title.toLowerCase().includes(kwQuery) ||
+      s.text.toLowerCase().includes(kwQuery) ||
+      s.example.toLowerCase().includes(kwQuery)
+    );
+  }
+
+  if (matches.length === 0) {
+    renderResult("No matching section found in the current dataset. Try a different section number or keyword.");
+    return;
+  }
+
+  const html = matches.map(s => `
+    <h3>Section ${s.num} — ${s.title}</h3>
+    <div>${s.text}</div>
+    <div class="ex">Example: ${s.example}</div>
+  `).join('<hr style="margin:14px 0;border:none;border-top:1px solid #e2e8f0;">');
+
+  renderResult(html);
+}
+
+document.getElementById('executeBtn').addEventListener('click', searchSections);
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  document.getElementById('sectionInput').value = '';
+  document.getElementById('keywordInput').value = '';
+  renderResult("Awaiting query execution. Enter a targeted section or key phrase above to generate clean, structured results.");
+});
+
+document.getElementById('lockBtn').addEventListener('click', () => {
+  document.getElementById('hubScreen').style.display = 'none';
+  document.querySelector('.card').style.display = 'block';
+  badge.textContent = '🔒';
+  setStatus('System locked. Say your voice password to unlock.', 'info');
 });
 </script>
 </body>
